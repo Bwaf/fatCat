@@ -1,5 +1,7 @@
- using System.Collections;
+using System;
+using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -35,8 +37,9 @@ public class PlayerController : MonoBehaviour
     [SerializeField]
     private bool _isMoving = false;
 
-    public bool IsMoving { 
-        get 
+    public bool IsMoving
+    {
+        get
         {
             return _isMoving;
         }
@@ -45,7 +48,7 @@ public class PlayerController : MonoBehaviour
             _isMoving = value;
             animator.SetBool("isMoving", value);
         }
-     }
+    }
 
     [SerializeField]
     private bool _isRunning = false;
@@ -60,6 +63,23 @@ public class PlayerController : MonoBehaviour
         {
             _isRunning = value;
             animator.SetBool("isRunning", value);
+        }
+    }
+
+    private bool _isFacingRight = true;
+    public bool IsFacingRight
+    {
+        get
+        {
+            return _isFacingRight;
+        }
+        private set
+        {
+            if(_isFacingRight != value)
+            {
+                transform.localScale *= new Vector2(-1, 1);
+            }
+            _isFacingRight = value;
         }
     }
 
@@ -86,7 +106,7 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        rb.velocity = new Vector2(moveInput.x * CurrentMoveSpeed, rb.velocity.y); 
+        rb.velocity = new Vector2(moveInput.x * CurrentMoveSpeed, rb.velocity.y);
     }
 
     public void OnMove(InputAction.CallbackContext context)
@@ -94,6 +114,20 @@ public class PlayerController : MonoBehaviour
         moveInput = context.ReadValue<Vector2>();
 
         IsMoving = moveInput != Vector2.zero;
+
+        SetFacingDirection(moveInput);
+    }
+
+    private void SetFacingDirection(Vector2 moveInput)
+    {
+        if (moveInput.x > 0 && !IsFacingRight)
+        {
+            IsFacingRight = true;
+        }
+        else if (moveInput.x < 0 && IsFacingRight)
+        {
+            IsFacingRight = false;
+        }
     }
 
     public void OnRun(InputAction.CallbackContext context)
@@ -101,7 +135,8 @@ public class PlayerController : MonoBehaviour
         if (context.started)
         {
             IsRunning = true;
-        } else if (context.canceled)
+        }
+        else if (context.canceled)
         {
             IsRunning = false;
         }
